@@ -1,0 +1,34 @@
+package com.habitmate.model;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class HabitTest {
+
+    @Test
+    @DisplayName("습관 생성 시 기본 완료 상태는 false이다")
+    void habitDefaultCompletionIsFalse() {
+        Habit habit = new Habit(1L, "운동하기", "매일 30분");
+        assertThat(habit.isCompleted()).isFalse();
+    }
+
+    @Test
+    @DisplayName("습관 완료 처리 후 completed는 true가 된다")
+    void habitCompletionChangesState() {
+        Habit habit = new Habit(1L, "운동하기", "매일 30분");
+        habit.setCompleted(true);
+
+        assertThat(habit.isCompleted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("습관의 이름과 설명이 올바르게 저장된다")
+    void habitStoresNameAndDescription() {
+        Habit habit = new Habit(1L, "공부하기", "매일 1시간 자바 복습");
+
+        assertThat(habit.getName()).isEqualTo("공부하기");
+        assertThat(habit.getDescription()).isEqualTo("매일 1시간 자바 복습");
+    }
+}

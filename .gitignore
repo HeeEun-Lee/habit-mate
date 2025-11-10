@@ -1,0 +1,76 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Logs ###
+logs/
+*.log
+log/
+debug.log
+
+### Environment ###
+.env
+*.env
+.env.*
+!env.example
+
+### Spring Boot Configuration ###
+application.properties
+application.yml
+application-local.yml
+application-dev.yml
+application-prod.yml
+application-*.yml
+
+### Gradle Wrapper ###
+!gradle/wrapper/gradle-wrapper.jar
+
+### Temporary ###
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+### OS Files ###
+.DS_Store
+Thumbs.db
+
+### Build Tools ###
+target/
+test-output/
+reports/
