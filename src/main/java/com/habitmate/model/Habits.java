@@ -1,49 +1,32 @@
 package com.habitmate.model;
 
+import com.habitmate.exception.ErrorMessage;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Habits {
 
-    private final List<Habit> habits = new ArrayList<>();
-    private long nextId = 1L;
+    private final List<Habit> values;
 
-    public Habit add(String name, String description) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("습관 이름은 필수 입력입니다.");
+    public Habits(List<Habit> values) {
+        this.values = values;
+    }
+
+    public double calculateCompletionRate() {
+        if (values == null || values.isEmpty()) {
+            throw new NoSuchElementException(ErrorMessage.NO_COMPLETED_HABITS.getMessage());
         }
-        Habit habit = new Habit(nextId++, name, description);
-        habits.add(habit);
-        return habit;
-    }
+        long completed = values.stream().filter(Habit::isCompleted).count();
+        double rate = ((double) completed / values.size()) * 100.0;
 
-    public void remove(Long id) {
-        habits.removeIf(h -> h.getId().equals(id));
-    }
-
-    public Optional<Habit> findById(Long id) {
-        return habits.stream()
-                .filter(h -> h.getId().equals(id))
-                .findFirst();
-    }
-
-    public List<Habit> getAll() {
-        return Collections.unmodifiableList(habits);
+        // 소수점 한 자리까지 반올림
+        return Math.round(rate * 10.0) / 10.0;
     }
 
     public List<Habit> getCompletedHabits() {
-        return habits.stream()
-                .filter(Habit::isCompleted)
-                .collect(Collectors.toList());
+        return values.stream().filter(Habit::isCompleted).toList();
     }
 
-    public double getCompletionRate() {
-        if (habits.isEmpty()) return 0;
-        long completed = habits.stream().filter(Habit::isCompleted).count();
-        return (double) completed / habits.size() * 100;
-    }
-
-    public int size() {
-        return habits.size();
+    public List<Habit> getAll() {
+        return List.copyOf(values);
     }
 }
