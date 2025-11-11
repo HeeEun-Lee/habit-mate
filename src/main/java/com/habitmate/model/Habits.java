@@ -1,5 +1,6 @@
 package com.habitmate.model;
 
+import com.habitmate.exception.ErrorMessage;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -10,7 +11,7 @@ public class Habits {
 
     public Habit addHabit(String name, String description) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("습관 이름은 필수 입력입니다.");
+            throw new IllegalArgumentException(ErrorMessage.HABIT_NAME_REQUIRED.getMessage());
         }
         Habit habit = new Habit(nextId++, name, description);
         habits.add(habit);

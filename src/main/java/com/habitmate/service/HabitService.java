@@ -1,7 +1,6 @@
 package com.habitmate.service;
 
-import static com.habitmate.exception.ErrorMessage.HABIT_NAME_REQUIRED;
-
+import com.habitmate.exception.ErrorMessage;
 import com.habitmate.model.Habit;
 import com.habitmate.model.Habits;
 import org.springframework.stereotype.Service;
@@ -22,13 +21,13 @@ public class HabitService {
 
     public void completeHabit(Long id) {
         Habit habit = habits.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("해당 ID의 습관이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException(ErrorMessage.HABIT_NOT_FOUND.getMessage()));
         habit.setCompleted(true);
     }
 
     public void deleteHabit(Long id) {
         if (habits.findById(id).isEmpty()) {
-            throw new NoSuchElementException("삭제할 습관이 존재하지 않습니다.");
+            throw new NoSuchElementException(ErrorMessage.HABIT_DELETE_NOT_FOUND.getMessage());
         }
         habits.removeHabitById(id);
     }
