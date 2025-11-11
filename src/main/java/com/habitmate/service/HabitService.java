@@ -13,11 +13,11 @@ public class HabitService {
     private final Habits habits = new Habits();
 
     public Habit createHabit(String name, String description) {
-        return habits.add(name, description);
+        return habits.addHabit(name, description);
     }
 
     public List<Habit> getAllHabits() {
-        return habits.getAll();
+        return habits.getAllHabits();
     }
 
     public void completeHabit(Long id) {
@@ -30,10 +30,10 @@ public class HabitService {
         if (habits.findById(id).isEmpty()) {
             throw new NoSuchElementException("삭제할 습관이 존재하지 않습니다.");
         }
-        habits.remove(id);
+        habits.removeHabitById(id);
     }
 
     public double getCompletionRate() {
-        return habits.getCompletionRate();
+        return habits.calculateCompletionRate();
     }
 }

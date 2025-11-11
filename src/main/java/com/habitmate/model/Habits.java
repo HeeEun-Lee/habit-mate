@@ -8,7 +8,7 @@ public class Habits {
     private final List<Habit> habits = new ArrayList<>();
     private long nextId = 1L;
 
-    public Habit add(String name, String description) {
+    public Habit addHabit(String name, String description) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("습관 이름은 필수 입력입니다.");
         }
@@ -17,7 +17,7 @@ public class Habits {
         return habit;
     }
 
-    public void remove(Long id) {
+    public void removeHabitById(Long id) {
         habits.removeIf(h -> h.getId().equals(id));
     }
 
@@ -27,17 +27,17 @@ public class Habits {
                 .findFirst();
     }
 
-    public List<Habit> getAll() {
+    public List<Habit> getAllHabits() {
         return Collections.unmodifiableList(habits);
     }
 
-    public List<Habit> getCompletedHabits() {
+    public List<Habit> findCompletedHabits() {
         return habits.stream()
                 .filter(Habit::isCompleted)
                 .collect(Collectors.toList());
     }
 
-    public double getCompletionRate() {
+    public double calculateCompletionRate() {
         if (habits.isEmpty()) return 0;
         long completed = habits.stream().filter(Habit::isCompleted).count();
         return (double) completed / habits.size() * 100;
