@@ -1,9 +1,8 @@
 package com.habitmate.controller;
 
-import com.habitmate.model.Habit;
+import com.habitmate.dto.HabitRequest;
+import com.habitmate.dto.HabitResponse;
 import com.habitmate.service.HabitService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -18,35 +17,32 @@ public class HabitController {
     }
 
     @PostMapping
-    public ResponseEntity<Habit> createHabit(@RequestBody Habit habit) {
-        Habit saved = habitService.createHabit(habit.getName(), habit.getDescription());
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    public HabitResponse createHabit(@RequestBody HabitRequest request) {
+        return habitService.createHabit(request);
     }
 
     @GetMapping
-    public ResponseEntity<List<Habit>> getAllHabits() {
-        return ResponseEntity.ok(habitService.getAllHabits());
+    public List<HabitResponse> getAllHabits() {
+        return habitService.getAllHabits();
     }
 
     @GetMapping("/completed")
-    public ResponseEntity<List<Habit>> getCompletedHabits() {
-        return ResponseEntity.ok(habitService.getCompletedHabits());
+    public List<HabitResponse> getCompletedHabits() {
+        return habitService.getCompletedHabits();
     }
 
     @PutMapping("/{id}/complete")
-    public ResponseEntity<Void> completeHabit(@PathVariable Long id) {
+    public void completeHabit(@PathVariable Long id) {
         habitService.completeHabit(id);
-        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteHabit(@PathVariable Long id) {
+    public void deleteHabit(@PathVariable Long id) {
         habitService.deleteHabit(id);
-        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/completion-rate")
-    public ResponseEntity<Double> getCompletionRate() {
-        return ResponseEntity.ok(habitService.getCompletionRate());
+    public double getCompletionRate() {
+        return habitService.getCompletionRate();
     }
 }

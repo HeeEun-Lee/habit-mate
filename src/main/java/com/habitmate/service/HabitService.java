@@ -1,9 +1,15 @@
 package com.habitmate.service;
 
+import com.habitmate.dto.HabitRequest;
+import com.habitmate.dto.HabitResponse;
 import com.habitmate.exception.ErrorMessage;
+import com.habitmate.mapper.HabitMapper;
 import com.habitmate.model.Habit;
 import com.habitmate.model.Habits;
+import com.habitmate.model.User;
 import com.habitmate.repository.HabitRepository;
+import com.habitmate.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,15 +19,28 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class HabitService {
     private final HabitRepository habitRepository;
+    private final UserRepository userRepository;
+    private User defaultUser;
 
-    public HabitService(HabitRepository habitRepository) {
+    public HabitService(HabitRepository habitRepository, UserRepository userRepository) {
         this.habitRepository = habitRepository;
+        this.userRepository = userRepository;
+    }
+
+    @PostConstruct
+    public void initDefaultUser() {
+        if (userRepository.count() == 0) {
+            userRepository.save(User.createDefaultUser());
+        }
+        defaultUser = userRepository.findAll().get(0);
     }
 
     @Transactional
-    public Habit createHabit(String name, String description) {
-        validateName(name);
-        return habitRepository.save(new Habit(name, description));
+    public HabitResponse createHabit(HabitRequest request) {
+        validateName(request.getName());
+        Habit habit = HabitMapper.toEntity(request, defaultUser);
+        Habit saved = habitRepository.save(habit);
+        return HabitMapper.toResponse(saved);
     }
 
     @Transactional
@@ -39,11 +58,14 @@ public class HabitService {
         habitRepository.deleteById(id);
     }
 
-    public List<Habit> getAllHabits() {
-        return loadAllHabitsOrThrow();
+    public List<HabitResponse> getAllHabits() {
+        return loadAllHabitsOrThrow()
+                .stream()
+                .map(HabitMapper::toResponse)
+                .toList();
     }
 
-    public List<Habit> getCompletedHabits() {
+    public List<HabitResponse> getCompletedHabits() {
         List<Habit> allHabits = loadAllHabitsOrThrow();
         List<Habit> completed = allHabits.stream()
                 .filter(Habit::isCompleted)
@@ -52,7 +74,9 @@ public class HabitService {
         if (completed.isEmpty()) {
             throw new NoSuchElementException(ErrorMessage.NO_COMPLETED_HABITS.getMessage());
         }
-        return completed;
+        return completed.stream()
+                .map(HabitMapper::toResponse)
+                .toList();
     }
 
 
@@ -77,7 +101,13 @@ public class HabitService {
     }
 
     private Habit findHabitOrThrow(Long id) {
-        return habitRepository.findById(id)
+        Habit habit = habitRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException(ErrorMessage.HABIT_NOT_FOUND.getMessage()));
+
+        if (!habit.getUser().getId().equals(defaultUser.getId())) {
+            throw new IllegalArgumentException("다른 사용자의 습관에는 접근할 수 없습니다.");
+        }
+
+        return habit;
     }
 }
