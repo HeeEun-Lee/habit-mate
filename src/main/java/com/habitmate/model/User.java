@@ -25,6 +25,14 @@ public class User {
     @Column(nullable = false)
     private String nickname;
 
+    public static User create(String email, String password, String nickname) {
+        return User.builder()
+                .email(email)
+                .password(password)
+                .nickname(nickname)
+                .build();
+    }
+
     public static User createDefaultUser() {
         return User.builder()
                 .email("default@habitmate.com")
