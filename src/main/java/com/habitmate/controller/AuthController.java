@@ -1,12 +1,13 @@
 package com.habitmate.controller;
 
-import com.habitmate.dto.AuthRequest;
 import com.habitmate.dto.AuthResponse;
-import com.habitmate.model.User;
-import com.habitmate.repository.UserRepository;
-import com.habitmate.config.JwtTokenProvider;
+import com.habitmate.web.dto.SignInRequest;
+import com.habitmate.web.dto.SignUpRequest;
+import com.habitmate.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,44 +15,31 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    // ✅ 회원가입
+    /**
+     * 회원가입
+     */
     @PostMapping("/sign-up")
-    public String signUp(@RequestBody AuthRequest request) {
-        // 이미 존재하는 이메일 확인
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
-        }
-
-        // 비밀번호 암호화 후 User 생성
-        User user = User.create(
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword()),
-                request.getNickname()
-        );
-
-        userRepository.save(user);
-        return "회원가입이 완료되었습니다.";
+    public ResponseEntity<String> signUp(@Valid @RequestBody SignUpRequest request) {
+        authService.signUp(request);
+        return ResponseEntity.ok("회원가입이 완료되었습니다.");
     }
 
-    // ✅ 로그인
+    /**
+     * 로그인 & JWT 발급
+     */
     @PostMapping("/sign-in")
-    public AuthResponse signIn(@RequestBody AuthRequest request) {
-        // 이메일로 사용자 조회
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+    public ResponseEntity<AuthResponse> signIn(@Valid @RequestBody SignInRequest request) {
+        String token = authService.signIn(request);
+        return ResponseEntity.ok(new AuthResponse(token));
+    }
 
-        // 비밀번호 일치 여부 확인
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
-        // JWT 토큰 발급
-        String token = jwtTokenProvider.createToken(user.getEmail());
-
-        return new AuthResponse(token);
+    /**
+     * JWT 인증 확인용 엔드포인트
+     */
+    @GetMapping("/test-auth")
+    public ResponseEntity<String> testAuth(Authentication authentication) {
+        return ResponseEntity.ok("현재 로그인된 사용자: " + authentication.getName());
     }
 }

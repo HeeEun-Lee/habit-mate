@@ -1,6 +1,7 @@
 package com.habitmate.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,9 +10,8 @@ import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class Habit {
     @Id
@@ -27,8 +27,7 @@ public class Habit {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Habit(String name, String description) {
-        this.name = name;
-        this.description = description;
+    public void setCompleted(boolean completed) {
+        this.completed = true;
     }
 }
