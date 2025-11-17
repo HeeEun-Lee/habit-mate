@@ -5,9 +5,8 @@ import lombok.*;
 
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Table(name = "users")
 public class User {
@@ -16,20 +15,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 이메일, 패스워드, 닉네임은 지금은 사용 X, 확장을 위해 남겨둠.
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
     private String nickname;
 
-    public static User createDefaultUser() {
+    public static User create(String email, String password, String nickname) {
         return User.builder()
-                .email("default@habitmate.com")
-                .password("none")
-                .nickname("defaultUser")
+                .email(email)
+                .password(password)
+                .nickname(nickname)
                 .build();
     }
 }

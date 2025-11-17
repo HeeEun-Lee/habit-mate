@@ -18,4 +18,8 @@ public class HabitResponse {
         this.completed = habit.isCompleted();
         this.userNickname = habit.getUser() != null ? habit.getUser().getNickname() : null;
     }
+
+    public static HabitResponse of(Habit habit) {
+        return new HabitResponse(habit);
+    }
 }
