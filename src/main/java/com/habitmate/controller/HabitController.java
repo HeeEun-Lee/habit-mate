@@ -1,10 +1,12 @@
 package com.habitmate.controller;
 
+import com.habitmate.config.CustomUserDetails;
 import com.habitmate.dto.HabitRequest;
 import com.habitmate.dto.HabitResponse;
 import com.habitmate.service.HabitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -16,32 +18,32 @@ public class HabitController {
     private final HabitService habitService;
 
     @PostMapping
-    public HabitResponse createHabit(@RequestBody HabitRequest request, Authentication authentication) {
-        return habitService.createHabit(request, authentication);
+    public HabitResponse createHabit(@RequestBody HabitRequest request, @AuthenticationPrincipal CustomUserDetails user) {
+        return habitService.createHabit(request, user.getId());
     }
 
     @GetMapping
-    public List<HabitResponse> getAllHabits(Authentication authentication) {
-        return habitService.getAllHabits(authentication);
+    public List<HabitResponse> getAllHabits(@AuthenticationPrincipal CustomUserDetails user) {
+        return habitService.getAllHabits(user.getId());
     }
 
     @GetMapping("/completed")
-    public List<HabitResponse> getCompletedHabits(Authentication authentication) {
-        return habitService.getCompletedHabits(authentication);
+    public List<HabitResponse> getCompletedHabits(@AuthenticationPrincipal CustomUserDetails user) {
+        return habitService.getCompletedHabits(user.getId());
     }
 
     @PutMapping("/{id}/complete")
-    public void completeHabit(@PathVariable Long id, Authentication authentication) {
-        habitService.completeHabit(id, authentication);
+    public void completeHabit(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails user) {
+        habitService.completeHabit(id, user.getId());
     }
 
     @DeleteMapping("/{id}")
-    public void deleteHabit(@PathVariable Long id, Authentication authentication) {
-        habitService.deleteHabit(id, authentication);
+    public void deleteHabit(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails user) {
+        habitService.deleteHabit(id, user.getId());
     }
 
     @GetMapping("/completion-rate")
-    public double getCompletionRate(Authentication authentication) {
-        return habitService.getCompletionRate(authentication);
+    public double getCompletionRate(@AuthenticationPrincipal CustomUserDetails user) {
+        return habitService.getCompletionRate(user.getId());
     }
 }

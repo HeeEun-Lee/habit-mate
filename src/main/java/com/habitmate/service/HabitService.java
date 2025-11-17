@@ -27,20 +27,16 @@ public class HabitService {
     /**
      * 현재 로그인한 사용자 가져오기
      */
-    private User getCurrentUser(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null) {
-            throw new CustomException(ErrorMessage.USER_NOT_AUTHENTICATED);
-        }
-        String email = authentication.getName();
-        return userRepository.findByEmail(email)
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorMessage.LOGIN_USER_NOT_FOUND));
     }
 
     @Transactional
-    public HabitResponse createHabit(HabitRequest request, Authentication authentication) {
+    public HabitResponse createHabit(HabitRequest request, Long userId) {
         validateName(request.getName());
 
-        User currentUser = getCurrentUser(authentication);
+        User currentUser = getUserOrThrow(userId);
 
         Habit habit = HabitMapper.toEntity(request, currentUser);
         Habit saved = habitRepository.save(habit);
@@ -49,26 +45,23 @@ public class HabitService {
     }
 
     @Transactional
-    public void completeHabit(Long id, Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public void completeHabit(Long id, Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
-        Habit habit = findHabitOrThrow(id, currentUser);
+        Habit habit = findHabitOrThrow(id, userId);
 
         habit.setCompleted(true);
         habitRepository.save(habit);
     }
 
     @Transactional
-    public void deleteHabit(Long id, Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
-
-        Habit habit = findHabitOrThrow(id, currentUser);
-
+    public void deleteHabit(Long id, Long userId) {
+        Habit habit = findHabitOrThrow(id, userId);
         habitRepository.delete(habit);
     }
 
-    public List<HabitResponse> getAllHabits(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public List<HabitResponse> getAllHabits(Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
         List<Habit> habits = habitRepository.findByUser(currentUser);
 
@@ -81,8 +74,8 @@ public class HabitService {
                 .toList();
     }
 
-    public List<HabitResponse> getCompletedHabits(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public List<HabitResponse> getCompletedHabits(Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
         List<Habit> habits = habitRepository.findByUser(currentUser);
         List<Habit> completed = habits.stream()
@@ -98,8 +91,8 @@ public class HabitService {
                 .toList();
     }
 
-    public double getCompletionRate(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public double getCompletionRate(Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
         List<Habit> habits = habitRepository.findByUser(currentUser);
 
@@ -113,11 +106,11 @@ public class HabitService {
         }
     }
 
-    private Habit findHabitOrThrow(Long id, User currentUser) {
+    private Habit findHabitOrThrow(Long id, Long userId) {
         Habit habit = habitRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorMessage.HABIT_NOT_FOUND));
 
-        if (!habit.getUser().getId().equals(currentUser.getId())) {
+        if (!habit.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorMessage.HABIT_FORBIDDEN);
         }
 
