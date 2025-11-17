@@ -2,6 +2,7 @@ package com.habitmate.service;
 
 import com.habitmate.dto.HabitRequest;
 import com.habitmate.dto.HabitResponse;
+import com.habitmate.exception.CustomException;
 import com.habitmate.exception.ErrorMessage;
 import com.habitmate.mapper.HabitMapper;
 import com.habitmate.model.Habit;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +28,12 @@ public class HabitService {
      * 현재 로그인한 사용자 가져오기
      */
     private User getCurrentUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new CustomException(ErrorMessage.USER_NOT_AUTHENTICATED);
+        }
         String email = authentication.getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("로그인한 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorMessage.LOGIN_USER_NOT_FOUND));
     }
 
     @Transactional
@@ -70,7 +73,7 @@ public class HabitService {
         List<Habit> habits = habitRepository.findByUser(currentUser);
 
         if (habits.isEmpty()) {
-            throw new NoSuchElementException(ErrorMessage.HABIT_LIST_EMPTY.getMessage());
+            throw new CustomException(ErrorMessage.HABIT_LIST_EMPTY);
         }
 
         return habits.stream()
@@ -87,7 +90,7 @@ public class HabitService {
                 .toList();
 
         if (completed.isEmpty()) {
-            throw new NoSuchElementException(ErrorMessage.NO_COMPLETED_HABITS.getMessage());
+            throw new CustomException(ErrorMessage.NO_COMPLETED_HABITS);
         }
 
         return completed.stream()
@@ -106,16 +109,16 @@ public class HabitService {
 
     private void validateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(ErrorMessage.HABIT_NAME_REQUIRED.getMessage());
+            throw new CustomException(ErrorMessage.HABIT_NAME_REQUIRED);
         }
     }
 
     private Habit findHabitOrThrow(Long id, User currentUser) {
         Habit habit = habitRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessage.HABIT_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new CustomException(ErrorMessage.HABIT_NOT_FOUND));
 
         if (!habit.getUser().getId().equals(currentUser.getId())) {
-            throw new IllegalArgumentException("본인의 습관만 조회할 수 있습니다.");
+            throw new CustomException(ErrorMessage.HABIT_FORBIDDEN);
         }
 
         return habit;
