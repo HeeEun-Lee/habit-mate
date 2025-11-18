@@ -86,13 +86,9 @@ class AuthControllerTest {
         mockMvc.perform(post("/auth/sign-in")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest()) // 400 기대
-                .andExpect(result -> {
-                    Throwable exception = result.getResolvedException();
-                    assertThat(exception)
-                            .isInstanceOf(IllegalArgumentException.class)
-                            .hasMessage("비밀번호가 일치하지 않습니다.");
-                });
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_PASSWORD"))
+                .andExpect(jsonPath("$.message").value("비밀번호가 일치하지 않습니다."));
     }
 
 }

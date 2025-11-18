@@ -1,6 +1,8 @@
 package com.habitmate.service;
 
 import com.habitmate.config.JwtTokenProvider;
+import com.habitmate.exception.CustomException;
+import com.habitmate.exception.ErrorMessage;
 import com.habitmate.model.User;
 import com.habitmate.repository.UserRepository;
 import com.habitmate.web.dto.SignInRequest;
@@ -24,7 +26,7 @@ public class AuthService {
 
         // 이메일 중복 체크
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new CustomException(ErrorMessage.USER_ALREADY_EXISTS);
         }
 
         // 비밀번호 암호화
@@ -46,11 +48,11 @@ public class AuthService {
      */
     public String signIn(SignInRequest req) {
         User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+                .orElseThrow(() -> new CustomException(ErrorMessage.USER_NOT_FOUND));
 
         // 비밀번호 일치 확인
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new CustomException(ErrorMessage.INVALID_PASSWORD);
         }
 
         // JWT 발급

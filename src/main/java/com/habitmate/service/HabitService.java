@@ -2,6 +2,7 @@ package com.habitmate.service;
 
 import com.habitmate.dto.HabitRequest;
 import com.habitmate.dto.HabitResponse;
+import com.habitmate.exception.CustomException;
 import com.habitmate.exception.ErrorMessage;
 import com.habitmate.mapper.HabitMapper;
 import com.habitmate.model.Habit;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -27,17 +27,16 @@ public class HabitService {
     /**
      * 현재 로그인한 사용자 가져오기
      */
-    private User getCurrentUser(Authentication authentication) {
-        String email = authentication.getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("로그인한 사용자를 찾을 수 없습니다."));
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorMessage.LOGIN_USER_NOT_FOUND));
     }
 
     @Transactional
-    public HabitResponse createHabit(HabitRequest request, Authentication authentication) {
+    public HabitResponse createHabit(HabitRequest request, Long userId) {
         validateName(request.getName());
 
-        User currentUser = getCurrentUser(authentication);
+        User currentUser = getUserOrThrow(userId);
 
         Habit habit = HabitMapper.toEntity(request, currentUser);
         Habit saved = habitRepository.save(habit);
@@ -46,31 +45,28 @@ public class HabitService {
     }
 
     @Transactional
-    public void completeHabit(Long id, Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public void completeHabit(Long id, Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
-        Habit habit = findHabitOrThrow(id, currentUser);
+        Habit habit = findHabitOrThrow(id, userId);
 
         habit.setCompleted(true);
         habitRepository.save(habit);
     }
 
     @Transactional
-    public void deleteHabit(Long id, Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
-
-        Habit habit = findHabitOrThrow(id, currentUser);
-
+    public void deleteHabit(Long id, Long userId) {
+        Habit habit = findHabitOrThrow(id, userId);
         habitRepository.delete(habit);
     }
 
-    public List<HabitResponse> getAllHabits(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public List<HabitResponse> getAllHabits(Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
         List<Habit> habits = habitRepository.findByUser(currentUser);
 
         if (habits.isEmpty()) {
-            throw new NoSuchElementException(ErrorMessage.HABIT_LIST_EMPTY.getMessage());
+            throw new CustomException(ErrorMessage.HABIT_LIST_EMPTY);
         }
 
         return habits.stream()
@@ -78,8 +74,8 @@ public class HabitService {
                 .toList();
     }
 
-    public List<HabitResponse> getCompletedHabits(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public List<HabitResponse> getCompletedHabits(Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
         List<Habit> habits = habitRepository.findByUser(currentUser);
         List<Habit> completed = habits.stream()
@@ -87,7 +83,7 @@ public class HabitService {
                 .toList();
 
         if (completed.isEmpty()) {
-            throw new NoSuchElementException(ErrorMessage.NO_COMPLETED_HABITS.getMessage());
+            throw new CustomException(ErrorMessage.NO_COMPLETED_HABITS);
         }
 
         return completed.stream()
@@ -95,8 +91,8 @@ public class HabitService {
                 .toList();
     }
 
-    public double getCompletionRate(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
+    public double getCompletionRate(Long userId) {
+        User currentUser = getUserOrThrow(userId);
 
         List<Habit> habits = habitRepository.findByUser(currentUser);
 
@@ -106,16 +102,16 @@ public class HabitService {
 
     private void validateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(ErrorMessage.HABIT_NAME_REQUIRED.getMessage());
+            throw new CustomException(ErrorMessage.HABIT_NAME_REQUIRED);
         }
     }
 
-    private Habit findHabitOrThrow(Long id, User currentUser) {
+    private Habit findHabitOrThrow(Long id, Long userId) {
         Habit habit = habitRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessage.HABIT_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new CustomException(ErrorMessage.HABIT_NOT_FOUND));
 
-        if (!habit.getUser().getId().equals(currentUser.getId())) {
-            throw new IllegalArgumentException("본인의 습관만 조회할 수 있습니다.");
+        if (!habit.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorMessage.HABIT_FORBIDDEN);
         }
 
         return habit;
