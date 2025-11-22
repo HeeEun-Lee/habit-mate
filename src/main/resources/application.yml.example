@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:habitmate
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  h2:
+    console:
+      enabled: true
+
+jwt:
+    # JWT secret key (임의의 32자 이상 문자열)
+  secret: CHANGE-ME-TO-YOUR-SECRET-KEY
+  expiration: 3600000
